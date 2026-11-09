@@ -12,6 +12,7 @@ import com.skill_gate.entity.DbUser;
 import com.skill_gate.entity.UserState;
 import com.skill_gate.entity.UserStatus;
 import com.skill_gate.exception.AnswerOptionNotFoundException;
+import com.skill_gate.handler.employee.menu.EmployeeMenuHandler;
 import com.skill_gate.service.CheckResultService;
 import com.skill_gate.service.CheckService;
 import com.skill_gate.service.CheckSessionService;
@@ -43,6 +44,7 @@ public class OnboardingHandler {
     private final LessonService lessonService;
     private final UserProgressService userProgressService;
     private final QuestionService questionService;
+    private final EmployeeMenuHandler employeeMenuHandler;
 
     // TODO: now it's temporary storage for current check session (in production better to use Redis or DB)
     private final CheckSessionService checkSessionService;
@@ -95,14 +97,14 @@ public class OnboardingHandler {
      * @param user current user entity
      */
     public void finishOnboarding(DbUser user) {
-        user.setCurrentState(UserState.NONE);
         user.setOnboardingProgress(BigDecimal.valueOf(100));
         setStatusAndSave(user, UserStatus.COMPLETED);
 
         botService.sendMessage(user.getTelegramId(), """
                 🎉 Congratulations! You have successfully completed the onboarding!
                 
-                "Now you have full access to the knowledge base for your position.""");
+                Now you have full access to the knowledge base for your position.""");
+        employeeMenuHandler.showMainMenu(user);
     }
 
     /**

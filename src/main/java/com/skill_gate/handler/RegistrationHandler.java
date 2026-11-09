@@ -55,9 +55,13 @@ public class RegistrationHandler {
      * @param user    current user entity
      */
     public void handleFullName(DbUser user, Message message) {
+        if (message.text() == null) {
+            sendMessage(user.getTelegramId(), "Please enter your name and surname as text.");
+            return;
+        }
         var fullName = message.text().trim();
 
-        if (fullName.startsWith("/")) return;
+        if (fullName.isEmpty() || fullName.startsWith("/")) return;
 
         user.setFullName(fullName);
         setCurrentStateAndSave(user, UserState.REGISTRATION_WAITING_PHONE);
@@ -154,7 +158,14 @@ public class RegistrationHandler {
      * @return phone number as string
      */
     private String validatePhone(Message message) {
-        return message.contact() != null ? message.contact().phoneNumber() : message.text().trim();
+        if (message.contact() != null && message.contact().phoneNumber() != null) {
+            return message.contact().phoneNumber();
+        }
+        if (message.text() == null || message.text().isBlank()) {
+            throw new com.skill_gate.exception.BusinessException(
+                    "Please share your contact or type a phone number.");
+        }
+        return message.text().trim();
     }
 
     /**

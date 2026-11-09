@@ -94,6 +94,10 @@ public class AdminStateProcessor extends AbstractStateProcessor {
     @Override
     public void process(DbUser admin, CallbackQuery callback) {
         var data = callback.data();
+        if (data == null || data.isBlank()) {
+            sendUnknownCommand(admin);
+            return;
+        }
 
         if (data.startsWith("approve:")) {
             approvalHandler.approve(Long.parseLong(data.split(":")[1]), callback);

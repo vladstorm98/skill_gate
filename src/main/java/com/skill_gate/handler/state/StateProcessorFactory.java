@@ -14,7 +14,8 @@ public class StateProcessorFactory {
             RegistrationStateProcessor registration,
             OnboardingStateProcessor onboarding,
             AdminStateProcessor admin,
-            DefaultStateProcessor defaultProcessor) {
+            DefaultStateProcessor defaultProcessor,
+            EmployeeStateProcessor employee) {
 
         this.processors = Map.ofEntries(
                 Map.entry(UserState.REGISTRATION_WAITING_FULL_NAME, registration),
@@ -56,7 +57,7 @@ public class StateProcessorFactory {
                 Map.entry(UserState.SUPER_ADMIN_EDITING_QUESTION_NUMBER, admin),
 
                 Map.entry(UserState.NONE, defaultProcessor),
-                Map.entry(UserState.KNOWLEDGE_BASE_NAVIGATION, defaultProcessor)
+                Map.entry(UserState.KNOWLEDGE_BASE_NAVIGATION, employee)
         );
     }
 

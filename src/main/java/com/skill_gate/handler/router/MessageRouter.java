@@ -7,6 +7,7 @@ import com.skill_gate.entity.UserState;
 import com.skill_gate.handler.OnboardingHandler;
 import com.skill_gate.handler.RegistrationHandler;
 import com.skill_gate.handler.admin.menu.AdminMenuHandler;
+import com.skill_gate.handler.employee.menu.EmployeeMenuHandler;
 import com.skill_gate.handler.state.StateProcessorFactory;
 import com.skill_gate.handler.telegram.TelegramSender;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +20,13 @@ public class MessageRouter {
     private final StateProcessorFactory stateProcessorFactory;
     private final RegistrationHandler registrationHandler;
     private final OnboardingHandler onboardingHandler;
-    private final AdminMenuHandler menuHandler;
+    private final AdminMenuHandler adminMenuHandler;
+    private final EmployeeMenuHandler employeeMenuHandler;
     private final TelegramSender sender;
 
     public boolean routeStartCommand(DbUser user) {
         if (isAdmin(user)) {
-            menuHandler.showAdminMenu(user);
+            adminMenuHandler.showAdminMenu(user);
             return true;
         }
 
@@ -46,7 +48,7 @@ public class MessageRouter {
                 break;
 
             case COMPLETED:
-                sender.send(user, "Onboarding process has been completed! Wait us...");
+                employeeMenuHandler.showMainMenu(user);
                 break;
 
             case BLOCKED:

@@ -75,24 +75,33 @@ public class AdminLessonHandler {
     }
 
     public void handleNewLessonTitle(DbUser admin, Message message) {
+        var text = requireText(message, () -> lessonSender.sendNewLessonTitle(admin));
+        if (text == null) return;
+
         var draft = lessonDraftService.get(admin);
-        lessonService.updateTitle(draft.id(), message.text());
+        lessonService.updateTitle(draft.id(), text);
 
         stateManager.change(admin, UserState.SUPER_ADMIN_WAITING_NEW_LESSON_VIDEO_URL);
         lessonSender.sendNewLessonVideoUrl(admin);
     }
 
     public void handleNewLessonVideoUrl(DbUser admin, Message message) {
+        var text = requireText(message, () -> lessonSender.sendNewLessonVideoUrl(admin));
+        if (text == null) return;
+
         var draft = lessonDraftService.get(admin);
-        lessonService.updateVideoUrl(draft.id(), message.text());
+        lessonService.updateVideoUrl(draft.id(), text);
 
         stateManager.change(admin, UserState.SUPER_ADMIN_WAITING_NEW_LESSON_SUMMARY);
         lessonSender.sendNewLessonSummary(admin);
     }
 
     public void handleNewLessonSummary(DbUser admin, Message message) {
+        var text = requireText(message, () -> lessonSender.sendNewLessonSummary(admin));
+        if (text == null) return;
+
         var draft = lessonDraftService.get(admin);
-        lessonService.updateSummary(draft.id(), message.text());
+        lessonService.updateSummary(draft.id(), text);
 
         var lesson = lessonService.getLesson(draft.id());
         lessonDraftService.remove(admin);
@@ -121,8 +130,11 @@ public class AdminLessonHandler {
     }
 
     public void handleEditLessonTitle(DbUser admin, Message message) {
+        var text = requireText(message, () -> lessonSender.sendEditLessonTitle(admin));
+        if (text == null) return;
+
         var draft = lessonDraftService.get(admin);
-        lessonService.updateTitle(draft.id(), message.text());
+        lessonService.updateTitle(draft.id(), text);
 
         lessonSender.sendFieldUpdated(admin, "Title");
         handleEditLesson(admin, draft.id());
@@ -135,7 +147,17 @@ public class AdminLessonHandler {
     }
 
     public void handleEditLessonNumber(DbUser admin, Message message) {
-        var number = Long.parseLong(message.text());
+        if (message.text() == null || message.text().isBlank()) {
+            lessonSender.sendEditLessonNumber(admin);
+            return;
+        }
+        long number;
+        try {
+            number = Long.parseLong(message.text().trim());
+        } catch (NumberFormatException e) {
+            lessonSender.sendEditLessonNumber(admin);
+            return;
+        }
         var draft = lessonDraftService.get(admin);
 
         lessonService.updateNumber(draft.id(), number);
@@ -151,9 +173,11 @@ public class AdminLessonHandler {
     }
 
     public void handleEditLessonVideoUrl(DbUser admin, Message message) {
-        var draft = lessonDraftService.get(admin);
+        var text = requireText(message, () -> lessonSender.sendEditLessonVideoUrl(admin));
+        if (text == null) return;
 
-        lessonService.updateVideoUrl(draft.id(), message.text());
+        var draft = lessonDraftService.get(admin);
+        lessonService.updateVideoUrl(draft.id(), text);
 
         lessonSender.sendFieldUpdated(admin, "Video URL");
         handleEditLesson(admin, draft.id());
@@ -166,9 +190,11 @@ public class AdminLessonHandler {
     }
 
     public void handleEditLessonSummary(DbUser admin, Message message) {
-        var draft = lessonDraftService.get(admin);
+        var text = requireText(message, () -> lessonSender.sendEditLessonSummary(admin));
+        if (text == null) return;
 
-        lessonService.updateSummary(draft.id(), message.text());
+        var draft = lessonDraftService.get(admin);
+        lessonService.updateSummary(draft.id(), text);
 
         lessonSender.sendFieldUpdated(admin, "Summary");
         handleEditLesson(admin, draft.id());
@@ -207,5 +233,13 @@ public class AdminLessonHandler {
             return message.text();
         }
         return null;
+    }
+
+    private String requireText(Message message, Runnable onEmpty) {
+        if (message.text() == null || message.text().isBlank()) {
+            onEmpty.run();
+            return null;
+        }
+        return message.text().trim();
     }
 }

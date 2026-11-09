@@ -96,7 +96,8 @@ public class BotUpdateHandler {
     }
 
     private boolean isStartCommand(DbUser user, Message message) {
-        return "/start".equalsIgnoreCase(message.text()) && messageRouter.routeStartCommand(user);
+        var text = message.text();
+        return text != null && "/start".equalsIgnoreCase(text.trim()) && messageRouter.routeStartCommand(user);
     }
 
     private void processMessage(DbUser user, Message message) {
@@ -108,7 +109,7 @@ public class BotUpdateHandler {
     }
 
     private DbUser getOrCreate(Message message) {
-        return userService.getOrCreateUser(message.chat().id());
+        return userService.getOrCreateUser(message.from().id());
     }
 
     private DbUser getOrCreate(CallbackQuery callback) {

@@ -1,6 +1,8 @@
 spring:
   datasource:
     url: jdbc:postgresql://db:5432/skill_gate_db
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
   data:
     redis:
@@ -14,3 +16,14 @@ spring:
           - redis_4:7003
           - redis_5:7004
           - redis_6:7005
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+    flyway:
+      clean-disabled: true
+
+  telegram:
+    bot:
+      token: ${TELEGRAM_BOT_TOKEN}

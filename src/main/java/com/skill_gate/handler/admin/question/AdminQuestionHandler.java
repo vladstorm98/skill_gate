@@ -67,7 +67,11 @@ public class AdminQuestionHandler {
 
     public void handleEditText(DbUser admin, Message message) {
         var questionId = draftService.getQuestionId(admin);
-        questionService.updateText(questionId, message.text());
+        if (message.text() == null || message.text().isBlank()) {
+            questionSender.sendEditText(admin);
+            return;
+        }
+        questionService.updateText(questionId, message.text().trim());
         questionSender.sendFieldUpdated(admin, "Text");
         handleViewQuestion(admin, questionId);
     }
@@ -79,7 +83,18 @@ public class AdminQuestionHandler {
 
     public void handleEditNumber(DbUser admin, Message message) {
         var questionId = draftService.getQuestionId(admin);
-        questionService.updateNumber(questionId, Long.parseLong(message.text()));
+        if (message.text() == null || message.text().isBlank()) {
+            questionSender.sendEditNumber(admin);
+            return;
+        }
+        long number;
+        try {
+            number = Long.parseLong(message.text().trim());
+        } catch (NumberFormatException e) {
+            questionSender.sendEditNumber(admin);
+            return;
+        }
+        questionService.updateNumber(questionId, number);
         questionSender.sendFieldUpdated(admin, "Number");
         handleViewQuestion(admin, questionId);
     }
@@ -91,6 +106,10 @@ public class AdminQuestionHandler {
             return;
         }
 
+        if (message.text() == null || message.text().isBlank()) {
+            questionSender.sendEmpty(admin);
+            return;
+        }
         questionService.updateText(questionId, message.text().trim());
         questionSender.sendFieldUpdated(admin, "Text");
 
@@ -107,7 +126,11 @@ public class AdminQuestionHandler {
     public void handleNewAnswerText(DbUser admin, Message message) {
         var questionId = draftService.getQuestionId(admin);
         var question = questionService.getQuestion(questionId);
-        questionService.createAnswerOption(question, message.text(), false);
+        if (message.text() == null || message.text().isBlank()) {
+            questionSender.sendNewAnswerText(admin);
+            return;
+        }
+        questionService.createAnswerOption(question, message.text().trim(), false);
         questionSender.sendFieldUpdated(admin, "Answer");
         handleViewQuestion(admin, questionId);
     }

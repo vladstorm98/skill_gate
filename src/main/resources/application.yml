@@ -24,7 +24,8 @@ spring:
   # Hibernate
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
+      clean-disabled: true
     open-in-view: false
     properties:
       hibernate:

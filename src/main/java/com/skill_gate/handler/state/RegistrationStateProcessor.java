@@ -34,6 +34,10 @@ public class RegistrationStateProcessor extends AbstractStateProcessor {
     @Override
     public void process(DbUser user, CallbackQuery callback) {
         var data = callback.data();
+        if (data == null || data.isBlank()) {
+            sendUnknownCommand(user);
+            return;
+        }
 
         if (data.startsWith("choose_position:")) {
             registrationHandler.handlePositionChoice(user, data);

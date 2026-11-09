@@ -97,4 +97,14 @@ public final class BotConstants {
 
         private Question() {}
     }
+
+    /** Callbacks for completed employee (teacher) knowledge-base panel */
+    public static final class Knowledge {
+        public static final String MENU = "kb_menu";
+        public static final String LESSONS_PAGE = "kb_lessons_page_";  // kb_lessons_page_{page}
+        public static final String VIEW_LESSON = "kb_view_lesson:";
+        public static final String PROGRESS = "kb_progress";
+
+        private Knowledge() {}
+    }
 }

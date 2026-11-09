@@ -42,7 +42,6 @@ public class BotInitializer {
         });
 
         log.info("Telegram bot successfully started");
-        System.out.println("Application has been started");
     }
 
     /**
@@ -53,7 +52,6 @@ public class BotInitializer {
      */
     @PreDestroy
     public void shutdown() {
-        System.out.println("Application has been stopped");
         if (bot != null) {
             try {
                 bot.shutdown();

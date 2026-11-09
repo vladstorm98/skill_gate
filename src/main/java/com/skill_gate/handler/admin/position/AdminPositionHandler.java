@@ -34,11 +34,14 @@ public class AdminPositionHandler {
     }
 
     public void handleNewPosition(DbUser admin, Message message) {
-        var name = message.text();
+        if (message.text() == null || message.text().isBlank()) {
+            positionSender.sendNewPositionName(admin);
+            return;
+        }
+        var name = message.text().trim();
 
         positionService.createPosition(name);
         positionSender.sendNewPositionCreated(admin, name);
-
     }
 
     public void showSelectPosition(DbUser admin) {
@@ -76,7 +79,11 @@ public class AdminPositionHandler {
             return;
         }
 
-        positionService.updateName(positionId, message.text());
+        if (message.text() == null || message.text().isBlank()) {
+            positionSender.sendEditPositionName(admin);
+            return;
+        }
+        positionService.updateName(positionId, message.text().trim());
         positionDraftService.remove(admin);
 
         positionSender.sendFieldUpdated(admin, "Name");
@@ -100,7 +107,11 @@ public class AdminPositionHandler {
             return;
         }
 
-        positionService.updateDescription(positionId, message.text());
+        if (message.text() == null || message.text().isBlank()) {
+            positionSender.sendEditPositionDescription(admin);
+            return;
+        }
+        positionService.updateDescription(positionId, message.text().trim());
         positionDraftService.remove(admin);
 
         positionSender.sendFieldUpdated(admin, "Description");
