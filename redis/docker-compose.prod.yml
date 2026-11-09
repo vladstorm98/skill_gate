@@ -1,0 +1,129 @@
+volumes:
+  redis_1_data:
+  redis_2_data:
+  redis_3_data:
+  redis_4_data:
+  redis_5_data:
+  redis_6_data:
+
+services:
+  redis_1:
+    image: "redis:7.4"
+    container_name: redis_1
+    entrypoint: ["/usr/local/bin/redis-server"]
+    ports:
+      - "7000:7000"
+      - "17000:17000"
+    volumes:
+      - redis_1_data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["/usr/local/etc/redis/redis.conf",
+              "--port", "7000",
+              "--cluster-announce-port", "7000",
+              "--cluster-announce-bus-port", "17000"]
+    networks:
+      - redis_network
+
+  redis_2:
+    image: "redis:7.4"
+    container_name: redis_2
+    entrypoint: ["/usr/local/bin/redis-server"]
+    ports:
+      - "7001:7001"
+      - "17001:17001"
+    volumes:
+      - redis_2_data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["/usr/local/etc/redis/redis.conf",
+              "--port", "7001",
+              "--cluster-announce-port", "7001",
+              "--cluster-announce-bus-port", "17001"]
+    networks:
+      - redis_network
+
+  redis_3:
+    image: "redis:7.4"
+    container_name: redis_3
+    entrypoint: ["/usr/local/bin/redis-server"]
+    ports:
+      - "7002:7002"
+      - "17002:17002"
+    volumes:
+      - redis_3_data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["/usr/local/etc/redis/redis.conf",
+              "--port", "7002",
+              "--cluster-announce-port", "7002",
+              "--cluster-announce-bus-port", "17002"]
+    networks:
+      - redis_network
+
+  redis_4:
+    image: "redis:7.4"
+    container_name: redis_4
+    entrypoint: ["/usr/local/bin/redis-server"]
+    ports:
+      - "7003:7003"
+      - "17003:17003"
+    volumes:
+      - redis_4_data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["/usr/local/etc/redis/redis.conf",
+              "--port", "7003",
+              "--cluster-announce-port", "7003",
+              "--cluster-announce-bus-port", "17003"]
+    networks:
+      - redis_network
+
+  redis_5:
+    image: "redis:7.4"
+    container_name: redis_5
+    entrypoint: ["/usr/local/bin/redis-server"]
+    ports:
+      - "7004:7004"
+      - "17004:17004"
+    volumes:
+      - redis_5_data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["/usr/local/etc/redis/redis.conf",
+              "--port", "7004",
+              "--cluster-announce-port", "7004",
+              "--cluster-announce-bus-port", "17004"]
+    networks:
+      - redis_network
+
+  redis_6:
+    image: "redis:7.4"
+    container_name: redis_6
+    entrypoint: ["/usr/local/bin/redis-server"]
+    ports:
+      - "7005:7005"
+      - "17005:17005"
+    volumes:
+      - redis_6_data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["/usr/local/etc/redis/redis.conf",
+              "--port", "7005",
+              "--cluster-announce-port", "7005",
+              "--cluster-announce-bus-port", "17005"]
+    networks:
+      - redis_network
+
+  cluster_initiator:
+    container_name: cluster_initiator
+    build: .
+    tty: true
+    depends_on:
+      - redis_1
+      - redis_2
+      - redis_3
+      - redis_4
+      - redis_5
+      - redis_6
+    networks:
+      - redis_network
+
+networks:
+  redis_network:
+    driver: bridge
+    name: redis_network

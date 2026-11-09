@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://db:5432/skill_gate_db
+
+  data:
+    redis:
+      host:
+      port:
+      cluster:
+        nodes:
+          - redis_1:7000
+          - redis_2:7001
+          - redis_3:7002
+          - redis_4:7003
+          - redis_5:7004
+          - redis_6:7005
