@@ -13,6 +13,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -30,6 +32,17 @@ public class CheckService {
         return checkRepository.findByLessonAndVersion(lesson, version)
                 .orElseThrow(() -> new CheckNotFoundException(
                         "Check for lesson '" + lesson.getTitle() + "' (v." + version + ") not found"));
+    }
+
+    public DbCheck getCheckForAttempt(DbLesson lesson, long attemptCount) {
+        var checks = checkRepository.findByLesson(lesson).stream()
+                .sorted(Comparator.comparing(DbCheck::getVersion))
+                .toList();
+
+        if (checks.isEmpty()) {
+            throw new CheckNotFoundException("No checks for lesson '" + lesson.getTitle() + "'");
+        }
+        return checks.get((int) (attemptCount % checks.size()));
     }
 
     public Page<DbCheck> getPage(DbLesson lesson, int page, int size) {

@@ -28,6 +28,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Manages the entire employee onboarding flow:
@@ -70,9 +72,9 @@ public class OnboardingHandler {
      */
     public void handleVideoWatched(CallbackQuery callback, DbUser user) {
         var lesson = getLessonByCallback(callback);
-
         markVideoWatched(callback, user, lesson);
         startCheckSession(user, lesson);
+        continueCheck(user, lesson);
     }
 
     /**
@@ -173,8 +175,8 @@ public class OnboardingHandler {
      * @param lesson the lesson for which the check is started
      */
     private void startCheckSession(DbUser user, DbLesson lesson) {
-        var version = getCheckAttemptCount(user, lesson);
-        var check = getCheckForLesson(lesson, version);
+        var check = checkService.getCheckForAttempt(lesson, getCheckAttemptCount(user, lesson));
+        checkSessionService.startCheckSession(user.getId(), check.getId(), lesson.getId());
 
         checkSessionService.startCheckSession(user.getId(), check.getId(), lesson.getId());
     }
@@ -237,44 +239,55 @@ public class OnboardingHandler {
     }
 
     /**
-     * Sends the next question to the user with a list of answer options as inline keyboard buttons.
+     * Sends the next question to the user. The full text of every answer option is shown
+     * in the message body (numbered), and the inline keyboard contains only short number buttons,
+     * because Telegram truncates long button captions instead of wrapping them.
      *
      * @param user     the user to whom the question should be sent
      * @param question the question to display
      */
     private void sendNextQuestionToUser(DbUser user, DbQuestion question) {
-        InlineKeyboardMarkup markup = buildAnswerOptionsMarkup(question);
+        var options = getAnswerOptions(question);
+        var markup = buildAnswerOptionsMarkup(question, options);
+
+        var optionsText = IntStream.range(0, options.size())
+                .mapToObj(i -> (i + 1) + ". " + options.get(i).getText())
+                .collect(Collectors.joining("\n\n"));
 
         String messageText = """
                 ❓ Question %d/%d
                 
+                %s
+
                 %s""".formatted(
                 question.getNumber(),
                 checkSessionService.getTotalQuestions(user.getId()),
-                question.getText()
+                question.getText(),
+                optionsText
         );
 
         botService.sendMessageWithMarkup(user.getTelegramId(), messageText, markup);
     }
 
     /**
-     * Builds an inline keyboard markup containing all answer options for the given question.
+     * Builds an inline keyboard markup with one short numbered button per answer option,
+     * all placed in a single row. Button numbers match the numbering in the question text.
      *
-     * <p>Each answer option is placed on a separate row as a single button.</p>
      * <p>Callback data format: "check_answer:{questionId}:{answerOptionId}"</p>
      *
      * @param question the question for which answer buttons should be created
+     * @param options  answer options in the same order as they are listed in the message text
      * @return configured {@link InlineKeyboardMarkup} with answer options
      */
-    private InlineKeyboardMarkup buildAnswerOptionsMarkup(DbQuestion question) {
-        InlineKeyboardButton[][] rows = getAnswerOptions(question).stream()
-                .map(option -> new InlineKeyboardButton(option.getText())
-                        .callbackData("check_answer:" + question.getId() + ":" + option.getId()))
-                .map(button -> new InlineKeyboardButton[]{button})
-                .toArray(InlineKeyboardButton[][]::new);
 
-        return new InlineKeyboardMarkup(rows);
-    }
+     private InlineKeyboardMarkup buildAnswerOptionsMarkup(DbQuestion question, List<DbAnswerOption> options) {
+            InlineKeyboardButton[] row = IntStream.range(0, options.size())
+                    .mapToObj(i -> new InlineKeyboardButton(String.valueOf(i + 1))
+                    .callbackData("check_answer:" + question.getId() + ":" + options.get(i).getId()))
+                    .toArray(InlineKeyboardButton[]::new);
+
+            return new InlineKeyboardMarkup(row);
+     }
 
     /**
      * Finishes the knowledge check, calculates result, saves progress and decides next step.
@@ -330,7 +343,7 @@ public class OnboardingHandler {
      */
     private void saveCheckResults(DbUser user, DbLesson lesson, CheckResult result) {
         var checkAttemptCount = checkSessionService.getCheckAttemptCount(user.getId());
-        var check = checkService.getCheckForLesson(lesson, checkAttemptCount);
+        var check = checkService.getCheckForAttempt(lesson, checkAttemptCount);
 
         checkResultService.saveCheckResult(user, check, result.score(), result.passed(), checkAttemptCount);
     }
